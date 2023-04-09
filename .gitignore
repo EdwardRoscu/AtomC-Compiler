@@ -1,52 +1,91 @@
-# Prerequisites
-*.d
+# Ignore user-specific files and settings
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+# Ignore build output
+[Dd]ebug/
+[Rr]elease/
+x64/
+build/
+[Bb]in/
+[Oo]bj/
 
-# Linker output
-*.ilk
-*.map
-*.exp
+# Ignore Visual Studio files
+.vs
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.vcxproj.user.*
+*.vsidx
 
-# Precompiled Headers
+# Ignore IntelliSense files
+*.ipch/
+*.ncb
+*.opendb
+*.log
+*.sdf
+*.idb
+
+# Ignore precompiled headers
 *.gch
 *.pch
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
+# Ignore DLLs and other binary files
 *.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
 *.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-
-# Debug files
-*.dSYM/
-*.su
-*.idb
 *.pdb
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# Ignore generated files
+Debug/
+Release/
+*.exe
+*.exe.manifest
+*.dll
+*.lib
+*.exp
+*.sbr
+*.sdf
+*.opensdf
+*.sln.docstates
+*.suo
+*.sdf
+*.sln.cache
+*.obj
+*.pdb
+*.tlog
+*.lastbuildstate
+*.aps
+*.vshost.*
+*_i.c
+*_p.c
+*.ncb
+*.opendb
+*.log
+*.scc
+
+# Ignore editor backups and temporary files
+*~
+*.bak
+*.tmp
+
+# Ignore macOS specific files
+.DS_Store
+
+# Ignore compiled C files
+*.o
+*.obj
+
+# Ignore the output directory for documentation
+doc/html/
+doc/latex/
+doc/man/
+
+# Ignore generated files by CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+CTestTestfile.cmake

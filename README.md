@@ -1,4 +1,7 @@
 # AtomC Compiler 
+This project was developed as part of a university course on compilers.
+Some initial files and instructions were provided, and modifications were made to meet the project requirements.
+
 Implements a compiler for the AtomC programming language. The compiler includes:
 
 ## Lexical Analyzer:

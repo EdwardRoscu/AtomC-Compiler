@@ -6,6 +6,8 @@
 #include "../utils.h"
 #include "../ad.h"
 
+Domain* symTable = NULL;
+
 int typeBaseSize(Type* t) {
 	switch (t->tb) {
 	case TB_INT:return sizeof(int);
@@ -185,3 +187,18 @@ Symbol* addSymbolToDomain(Domain* d, Symbol* s) {
 	return addSymbolToList(&d->symbols, s);
 }
 
+Symbol* addExtFn(const char* name, void(*extFnPtr)(), Type ret) {
+	Symbol* fn = newSymbol(name, SK_FN);
+	fn->fn.extFnPtr = extFnPtr;
+	fn->type = ret;
+	addSymbolToDomain(symTable, fn);
+	return fn;
+}
+
+Symbol* addFnParam(Symbol* fn, const char* name, Type type) {
+	Symbol* param = newSymbol(name, SK_PARAM);
+	param->type = type;
+	param->paramIdx = symbolsLen(fn->fn.params);
+	addSymbolToList(&fn->fn.params, dupSymbol(param));
+	return param;
+}

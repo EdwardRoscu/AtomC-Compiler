@@ -18,7 +18,7 @@ int main() {
     vmInit(); // initializare masina virtuala
     // parse(list); // analiza sintactica (apelare analizor sintactic)
     // showDomain(symTable, "global"); // afisare domeniu global
-    Instr* testCode = genTestProgram(); // genereaza cod de test pentru masina virtuala
+    Instr* testCode = genTestProgramDouble(); // genereaza cod de test pentru masina virtuala
     run(testCode); // executie cod masina virtuala
 
     dropDomain(); // sterge domeniul global

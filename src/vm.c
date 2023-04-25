@@ -34,43 +34,51 @@ Val stack[10000];		// the stack
 Val* SP = stack - 1;		// Stack pointer - the stack's top - points to the value from the top of the stack
 Val* FP = NULL;		// the initial value doesn't matter
 
+void checkFull() {
+	if (SP + 1 == stack + 10000) err("trying to push into a full stack");
+}
+
+void checkEmpty() {
+	if (SP == stack - 1) err("trying to pop from empty stack");
+}
+
 void pushv(Val v) {
-	if (SP + 1 == stack + 10000)err("trying to push into a full stack");
+	checkFull();
 	*++SP = v;
 }
 
 Val popv() {
-	if (SP == stack - 1)err("trying to pop from empty stack");
+	checkEmpty();
 	return *SP--;
 }
 
 void pushi(int i) {
-	if (SP + 1 == stack + 10000)err("trying to push into a full stack");
+	checkFull();
 	(++SP)->i = i;
 }
 
 int popi() {
-	if (SP == stack - 1)err("trying to pop from empty stack");
+	checkEmpty();
 	return SP--->i;
 }
 
 void pushp(void* p) {
-	if (SP + 1 == stack + 10000)err("trying to push into a full stack");
+	checkFull();
 	(++SP)->p = p;
 }
 
 void* popp() {
-	if (SP == stack - 1)err("trying to pop from empty stack");
+	checkEmpty();
 	return SP--->p;
 }
 
 void pushf(double f) {
-	if (SP + 1 == stack + 10000) err("trying to push into a full stack");
+	checkFull();
 	(++SP)->f = f;
 }
 
 double popf() {
-	if (SP == stack - 1) err("trying to pop from empty stack");
+	checkEmpty();
 	return SP--->f;
 }
 
@@ -219,7 +227,7 @@ Instr* genTestProgram() {
 	// put_i(i);
 	addInstrWithInt(&code, OP_FPLOAD, 1);
 	Symbol* s = findSymbol("put_i");
-	if (!s)err("undefined: put_i");
+	if (!s) err("undefined: put_i");
 	addInstr(&code, OP_CALL_EXT)->arg.extFnPtr = s->fn.extFnPtr;
 	// i=i+1;
 	addInstrWithInt(&code, OP_FPLOAD, 1);

@@ -29,6 +29,6 @@ int main() {
     run(entryCode);
 
     dropDomain(); // sterge domeniul global
-    // freeTokenList(list);
+    freeTokenList(list);
     return 0;
 }

@@ -222,19 +222,20 @@ bool exprPrimary(Ret* r) {
 			}
 			if (consume(RPAR)) {
 				if (param) tkerr("too few arguments in function call");
+				*r = (Ret){ s->type,false,true };
 				if (s->fn.extFnPtr) {
 					addInstr(&owner->fn.instr, OP_CALL_EXT)->arg.extFnPtr = s->fn.extFnPtr;
 				}
 				else {
 					addInstr(&owner->fn.instr, OP_CALL)->arg.instr = s->fn.instr;
 				}
-				*r = (Ret){ s->type,false,true };
 				return true;
 			}
 			else tkerr("missing ')'");
 		}
 		else {
 			if (s->kind == SK_FN) tkerr("a function can only be called");
+			*r = (Ret){ s->type,true,s->type.n >= 0 };
 			if (s->kind == SK_VAR) {
 				if (s->owner == NULL) { // global variables
 					addInstr(&owner->fn.instr, OP_ADDR)->arg.p = s->varMem;
@@ -252,7 +253,6 @@ bool exprPrimary(Ret* r) {
 				case TB_DOUBLE: addInstrWithInt(&owner->fn.instr, OP_FPADDR_F, s->paramIdx - symbolsLen(s->owner->fn.params) - 1); break;
 				}
 			}
-			*r = (Ret){ s->type,true,s->type.n >= 0 };
 		}
 		return true;
 	}

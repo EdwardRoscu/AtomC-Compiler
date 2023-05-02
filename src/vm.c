@@ -142,6 +142,11 @@ void run(Instr* IP) {
 			pushi(IP->arg.i);
 			IP = IP->next;
 			break;
+		case OP_PUSH_F:
+			printf("PUSH.f\t%g", IP->arg.f);
+			pushf(IP->arg.f);
+			IP = IP->next;
+			break;
 		case OP_CALL:
 			pushp(IP->next);
 			printf("CALL\t%p", IP->arg.instr);
@@ -160,12 +165,33 @@ void run(Instr* IP) {
 			printf("ENTER\t%d", IP->arg.i);
 			IP = IP->next;
 			break;
+		case OP_RET:
+			v = popv();
+			iArg = IP->arg.i;
+			printf("RET\t%d\t// i:%d, f:%g", iArg, v.i, v.f);
+			IP = FP[-1].p;
+			SP = FP - iArg - 2;
+			FP = FP[0].p;
+			pushv(v);
+			break;
 		case OP_RET_VOID:
 			iArg = IP->arg.i;
 			printf("RET_VOID\t%d", iArg);
 			IP = FP[-1].p;
 			SP = FP - iArg - 2;
 			FP = FP[0].p;
+			break;
+		case OP_CONV_I_F:
+			iTop = popi();
+			pushf((double)iTop);
+			printf("CONV.i.f\t// %d -> %g", iTop, (double)iTop);
+			IP = IP->next;
+			break;
+		case OP_CONV_F_I:
+			fTop = popf();
+			pushi((int)fTop);
+			printf("CONV.f.i\t// %g -> %d", fTop, (int)fTop);
+			IP = IP->next;
 			break;
 		case OP_JMP:
 			printf("JMP\t%p", IP->arg.instr);
@@ -175,6 +201,11 @@ void run(Instr* IP) {
 			iTop = popi();
 			printf("JF\t%p\t// %d", IP->arg.instr, iTop);
 			IP = iTop ? IP->next : IP->arg.instr;
+			break;
+		case OP_JT:
+			iTop = popi();
+			printf("JT\t%p\t// %d", IP->arg.instr, iTop);
+			IP = iTop ? IP->arg.instr : IP->next;
 			break;
 		case OP_FPLOAD:
 			v = FP[IP->arg.i];
@@ -188,18 +219,56 @@ void run(Instr* IP) {
 			printf("FPSTORE\t%d\t// i:%d, f:%g", IP->arg.i, v.i, v.f);
 			IP = IP->next;
 			break;
+		case OP_LOAD_I:
+			pTop = popp();
+			pushi(*(int*)pTop);
+			printf("LOAD.i\t// *(int*)%p -> %d", pTop, *(int*)pTop);
+			IP = IP->next;
+			break;
+		case OP_LOAD_F:
+			pTop = popp();
+			pushf(*(double*)pTop);
+			printf("LOAD.f\t// *(double*)%p -> %lf", pTop, *(double*)pTop);
+			IP = IP->next;
+			break;
+		case OP_STORE_I:
+			iTop = popi();
+			v = popv();
+			*(int*)v.p = iTop;
+			pushi(iTop);
+			printf("STORE.i\t// *(int*)%p=%d", v.p, iTop);
+			IP = IP->next;
+			break;
+		case OP_STORE_F:
+			fTop = popf();
+			v = popv();
+			*(double*)v.p = fTop;
+			pushf(fTop);
+			printf("STORE.f\t// *(double*)%p=%lf", v.p, fTop);
+			IP = IP->next;
+			break;
+		case OP_ADDR:
+			pushp(IP->arg.p);
+			printf("ADDR\t// %p", IP->arg.p);
+			IP = IP->next;
+			break;
+		case OP_FPADDR_I:
+			pTop = &FP[IP->arg.i].i;
+			pushp(pTop);
+			printf("FPADDR\t%d\t// %p", IP->arg.i, pTop);
+			IP = IP->next;
+			break;
+		case OP_FPADDR_F:
+			pTop = &FP[IP->arg.i].f;
+			pushp(pTop);
+			printf("FPADDR\t%d\t// %p", IP->arg.i, pTop);
+			IP = IP->next;
+			break;
 		case OP_ADD_I:
 			iTop = popi();
 			iBefore = popi();
 			pushi(iBefore + iTop);
 			printf("ADD.i\t// %d+%d -> %d", iBefore, iTop, iBefore + iTop);
-			IP = IP->next;
-			break;
-		case OP_LESS_I:
-			iTop = popi();
-			iBefore = popi();
-			pushi(iBefore < iTop);
-			printf("LESS.i\t// %d<%d -> %d", iBefore, iTop, iBefore < iTop);
 			IP = IP->next;
 			break;
 		case OP_ADD_F:
@@ -209,61 +278,18 @@ void run(Instr* IP) {
 			printf("ADD.f\t// %lf+%lf -> %lf", fBefore, fTop, fBefore + fTop);
 			IP = IP->next;
 			break;
-		case OP_LESS_F:
-			fTop = popf();
-			fBefore = popf();
-			pushi(fBefore < fTop);
-			printf("LESS.f\t// %lf<%lf -> %d", fBefore, fTop, fBefore < fTop);
-			IP = IP->next;
-			break;
-
-			// added for code generation
-		case OP_CONV_F_I:
-			fTop = popf();
-			pushi((int)fTop);
-			printf("CONV.f.i\t// %g -> %d", fTop, (int)fTop);
-			IP = IP->next;
-			break;
-		case OP_DROP:
-			popv();
-			printf("DROP");
-			IP = IP->next;
-			break;
-		case OP_PUSH_F:
-			printf("PUSH.f\t%g", IP->arg.f);
-			pushf(IP->arg.f);
-			IP = IP->next;
-			break;
-		case OP_FPADDR_I:
-			pTop = &FP[IP->arg.i].i;
-			pushp(pTop);
-			printf("FPADDR\t%d\t// %p", IP->arg.i, pTop);
-			IP = IP->next;
-			break;
-		case OP_LOAD_I:
-			pTop = popp();
-			pushi(*(int*)pTop);
-			printf("LOAD.i\t// *(int*)%p -> %d", pTop, *(int*)pTop);
-			IP = IP->next;
-			break;
-		case OP_NOP:
-			printf("NOP");
-			IP = IP->next;
-			break;
-		case OP_RET:
-			v = popv();
-			iArg = IP->arg.i;
-			printf("RET\t%d\t// i:%d, f:%g", iArg, v.i, v.f);
-			IP = FP[-1].p;
-			SP = FP - iArg - 2;
-			FP = FP[0].p;
-			pushv(v);
-			break;
 		case OP_SUB_I:
 			iTop = popi();
 			iBefore = popi();
 			pushi(iBefore - iTop);
 			printf("SUB.i\t// %d-%d -> %d", iBefore, iTop, iBefore - iTop);
+			IP = IP->next;
+			break;
+		case OP_SUB_F:
+			fTop = popf();
+			fBefore = popf();
+			pushf(fBefore - fTop);
+			printf("SUB.f\t// %lf-%lf -> %lf", fBefore, fTop, fBefore - fTop);
 			IP = IP->next;
 			break;
 		case OP_MUL_I:
@@ -273,12 +299,90 @@ void run(Instr* IP) {
 			printf("MUL.i\t// %d*%d -> %d", iBefore, iTop, iBefore * iTop);
 			IP = IP->next;
 			break;
-		case OP_STORE_I:
+		case OP_MUL_F:
+			fTop = popf();
+			fBefore = popf();
+			pushf(fBefore * fTop);
+			printf("MUL.f\t// %lf*%lf -> %lf", fBefore, fTop, fBefore * fTop);
+			IP = IP->next;
+			break;
+		case OP_DIV_I:
 			iTop = popi();
-			v = popv();
-			*(int*)v.p = iTop;
-			pushi(iTop);
-			printf("STORE.i\t// *(int*)%p=%d", v.p, iTop);
+			iBefore = popi();
+			pushi(iBefore / iTop);
+			printf("DIV.i\t// %d/%d -> %d", iBefore, iTop, iBefore / iTop);
+			IP = IP->next;
+			break;
+		case OP_DIV_F:
+			fTop = popf();
+			fBefore = popf();
+			pushf(fBefore / fTop);
+			printf("DIV.f\t// %lf/%lf -> %lf", fBefore, fTop, fBefore / fTop);
+			IP = IP->next;
+			break;
+		case OP_LESS_I:
+			iTop = popi();
+			iBefore = popi();
+			pushi(iBefore < iTop);
+			printf("LESS.i\t// %d<%d -> %d", iBefore, iTop, iBefore < iTop);
+			IP = IP->next;
+			break;
+		case OP_LESS_F:
+			fTop = popf();
+			fBefore = popf();
+			pushi(fBefore < fTop);
+			printf("LESS.f\t// %lf<%lf -> %d", fBefore, fTop, fBefore < fTop);
+			IP = IP->next;
+			break;
+		case OP_LESSEQ_I:
+			iTop = popi();
+			iBefore = popi();
+			pushi(iBefore <= iTop);
+			printf("LESSEQ.i\t// %d<=%d -> %d", iBefore, iTop, iBefore <= iTop);
+			IP = IP->next;
+			break;
+		case OP_LESSEQ_F:
+			fTop = popf();
+			fBefore = popf();
+			pushi(fBefore <= fTop);
+			printf("LESSEQ.f\t// %lf<=%lf -> %d", fBefore, fTop, fBefore <= fTop);
+			IP = IP->next;
+			break;
+		case OP_GREATER_I:
+			iTop = popi();
+			iBefore = popi();
+			pushi(iBefore > iTop);
+			printf("GREATER.i\t// %d>%d -> %d", iBefore, iTop, iBefore > iTop);
+			IP = IP->next;
+			break;
+		case OP_GREATER_F:
+			fTop = popf();
+			fBefore = popf();
+			pushi(fBefore > fTop);
+			printf("GREATER.f\t// %lf>%lf -> %d", fBefore, fTop, fBefore > fTop);
+			IP = IP->next;
+			break;
+		case OP_GREATEREQ_I:
+			iTop = popi();
+			iBefore = popi();
+			pushi(iBefore >= iTop);
+			printf("GREATEREQ.i\t// %d>=%d -> %d", iBefore, iTop, iBefore >= iTop);
+			IP = IP->next;
+			break;
+		case OP_GREATEREQ_F:
+			fTop = popf();
+			fBefore = popf();
+			pushi(fBefore >= fTop);
+			printf("GREATEREQ.f\t// %lf>=%lf -> %d", fBefore, fTop, fBefore >= fTop);
+			IP = IP->next;
+			break;
+		case OP_DROP:
+			popv();
+			printf("DROP");
+			IP = IP->next;
+			break;
+		case OP_NOP:
+			printf("NOP");
 			IP = IP->next;
 			break;
 		default:err("run: not implemented instruction: %d", IP->op);

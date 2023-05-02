@@ -26,3 +26,8 @@ The Virtual Machine component allows the execution of AtomC programs by translat
 It is implemented as a stack-based VM for simplicity and ease of code generation.
 The VM interacts with various data types, function declarations, and external functions, and utilizes a stack for data manipulation.
 The run function handles the execution of VM instructions, and the VM can be tested using custom test programs.
+
+## Code Generation:
+The code generation component is responsible for converting the abstract syntax tree (AST)
+created by the syntactic analyzer into virtual machine (VM) instructions.
+These VM instructions can be executed by the AtomC VM, enabling the execution of AtomC programs.

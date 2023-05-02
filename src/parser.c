@@ -523,49 +523,93 @@ bool exprAdd(Ret* r) {
 // exprRel: exprAdd exprRelPrim
 // exprRelPrim : ( LESS | LESSEQ | GREATER | GREATEREQ ) exprAdd exprRelPrim | e
 bool exprRelPrim(Ret* r) {
-	int tokens[] = { LESS, LESSEQ, GREATER, GREATEREQ };
-	const char* errMsgs[] = { "<", "<=", ">", ">=" };
-	char errMsg[40];
-
 	Token* op;
 	Token* start = iTk;
 	Instr* startInstr = owner ? lastInstr(owner->fn.instr) : NULL;
-	for (int i = 0; i < 4; i++) {
-		if (consume(tokens[i])) {
-			op = iTk;
-			Ret right;
-			Instr* lastLeft = lastInstr(owner->fn.instr);
-			addRVal(&owner->fn.instr, r->lval, &r->type);
-			if (exprAdd(&right)) {
-				Type tDst;
-				if (!arithTypeTo(&r->type, &right.type, &tDst)) {
-					snprintf(errMsg, sizeof(errMsg), "invalid operand type for '%s'", errMsgs[i]);
-					tkerr(errMsg);
-				}
-				addRVal(&owner->fn.instr, right.lval, &right.type);
-				insertConvIfNeeded(lastLeft, &r->type, &tDst);
-				insertConvIfNeeded(lastInstr(owner->fn.instr), &right.type, &tDst);
-				switch (op->code) {
-				case LESS:
-					switch (tDst.tb) {
-					case TB_INT:    addInstr(&owner->fn.instr, OP_LESS_I); break;
-					case TB_DOUBLE: addInstr(&owner->fn.instr, OP_LESS_F); break;
-					}
-					break;
-				}
-				*r = (Ret){ {TB_INT, NULL, -1}, false, true };
-				if (exprRelPrim(r)) {
-					return true;
-				}
+	if (consume(LESS)) {
+		op = iTk;
+		Ret right;
+		Instr* lastLeft = lastInstr(owner->fn.instr);
+		addRVal(&owner->fn.instr, r->lval, &r->type);
+		if (exprAdd(&right)) {
+			Type tDst;
+			if (!arithTypeTo(&r->type, &right.type, &tDst))tkerr("invalid operand type for '<'");
+			addRVal(&owner->fn.instr, right.lval, &right.type);
+			insertConvIfNeeded(lastLeft, &r->type, &tDst);
+			insertConvIfNeeded(lastInstr(owner->fn.instr), &right.type, &tDst);
+			switch (tDst.tb) {
+			case TB_INT:addInstr(&owner->fn.instr, OP_LESS_I); break;
+			case TB_DOUBLE:addInstr(&owner->fn.instr, OP_LESS_F); break;
 			}
-			else {
-				snprintf(errMsg, sizeof(errMsg), "invalid expression after '%s'", errMsgs[i]);
-				tkerr(errMsg);
+			*r = (Ret){ {TB_INT,NULL,-1},false,true };
+			if (exprRelPrim(r)) {
+				return true;
 			}
 		}
-		iTk = start;
-		if (owner) delInstrAfter(startInstr);
+		else tkerr("invalid expression after '<'");
 	}
+	iTk = start;
+	if (owner) delInstrAfter(startInstr);
+	if (consume(LESSEQ)) {
+		op = iTk;
+		Ret right;
+		Instr* lastLeft = lastInstr(owner->fn.instr);
+		addRVal(&owner->fn.instr, r->lval, &r->type);
+		if (exprAdd(&right)) {
+			Type tDst;
+			if (!arithTypeTo(&r->type, &right.type, &tDst))tkerr("invalid operand type for '<='");
+			addRVal(&owner->fn.instr, right.lval, &right.type);
+			insertConvIfNeeded(lastLeft, &r->type, &tDst);
+			insertConvIfNeeded(lastInstr(owner->fn.instr), &right.type, &tDst);
+			*r = (Ret){ {TB_INT,NULL,-1},false,true };
+			if (exprRelPrim(r)) {
+				return true;
+			}
+		}
+		else tkerr("invalid expression after '<='");
+	}
+	iTk = start;
+	if (owner) delInstrAfter(startInstr);
+	if (consume(GREATER)) {
+		op = iTk;
+		Ret right;
+		Instr* lastLeft = lastInstr(owner->fn.instr);
+		addRVal(&owner->fn.instr, r->lval, &r->type);
+		if (exprAdd(&right)) {
+			Type tDst;
+			if (!arithTypeTo(&r->type, &right.type, &tDst))tkerr("invalid operand type for '>'");
+			addRVal(&owner->fn.instr, right.lval, &right.type);
+			insertConvIfNeeded(lastLeft, &r->type, &tDst);
+			insertConvIfNeeded(lastInstr(owner->fn.instr), &right.type, &tDst);
+			*r = (Ret){ {TB_INT,NULL,-1},false,true };
+			if (exprRelPrim(r)) {
+				return true;
+			}
+		}
+		else tkerr("invalid expression after '>'");
+	}
+	iTk = start;
+	if (owner) delInstrAfter(startInstr);
+	if (consume(GREATEREQ)) {
+		op = iTk;
+		Ret right;
+		Instr* lastLeft = lastInstr(owner->fn.instr);
+		addRVal(&owner->fn.instr, r->lval, &r->type);
+		if (exprAdd(&right)) {
+			Type tDst;
+			if (!arithTypeTo(&r->type, &right.type, &tDst))tkerr("invalid operand type for '>='");
+			addRVal(&owner->fn.instr, right.lval, &right.type);
+			insertConvIfNeeded(lastLeft, &r->type, &tDst);
+			insertConvIfNeeded(lastInstr(owner->fn.instr), &right.type, &tDst);
+			*r = (Ret){ {TB_INT,NULL,-1},false,true };
+			if (exprRelPrim(r)) {
+				return true;
+			}
+		}
+		else tkerr("invalid expression after '>='");
+	}
+	iTk = start;
+	if (owner) delInstrAfter(startInstr);
 	return true;
 }
 
@@ -667,7 +711,7 @@ bool exprOrPrim(Ret* r) {
 		Ret right;
 		if (exprAnd(&right)) {
 			Type tDst;
-			if (!arithTypeTo(&r->type, &right.type, &tDst)) tkerr(iTk, "invalid operand type for '||'");
+			if (!arithTypeTo(&r->type, &right.type, &tDst)) tkerr("invalid operand type for '||'");
 			*r = (Ret){ {TB_INT,NULL,-1},false,true };
 			if (exprOrPrim(r)) {
 				return true;

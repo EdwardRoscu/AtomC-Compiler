@@ -28,6 +28,7 @@ Instr* insertInstr(Instr* before, int op) {
 }
 
 void delInstrAfter(Instr* instr) {
+	if (instr == NULL) return;
 	for (Instr* next = instr->next, *i = next; i; i = next) {
 		next = i->next;
 		free(i);
